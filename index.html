@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cadillac Lead CRM</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --black:#0c0b0a;--surface:#141210;--surface2:#1c1a17;--surface3:#242118;
+    --border:#2e2a24;--border2:#3a3530;
+    --gold:#C9A84C;--gold-dim:#8A6E30;--gold-bg:rgba(201,168,76,0.08);
+    --cream:#F0EBE0;--cream2:#C8BFA8;--gray:#6B6560;--gray2:#4a4540;--white:#FAF8F4;
+    --blue:#378ADD;--blue-bg:rgba(55,138,221,0.12);
+    --green:#3a9e6a;--green-bg:rgba(58,158,106,0.12);
+    --amber:#d4820a;--amber-bg:rgba(212,130,10,0.12);
+    --purple:#7F77DD;--purple-bg:rgba(127,119,221,0.12);
+    --red:#c94a4a;--red-bg:rgba(201,74,74,0.12);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--black);color:var(--cream);font-family:'DM Sans',sans-serif;font-size:14px;min-height:100vh}
+
+  /* SETUP */
+  .setup-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px}
+  .setup-card{background:var(--surface);border:1px solid var(--border2);border-radius:16px;padding:40px;max-width:520px;width:100%}
+  .setup-logo{width:48px;height:48px;background:var(--gold-bg);border:1px solid var(--gold-dim);border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:22px;font-weight:900;color:var(--gold);margin-bottom:20px}
+  .setup-title{font-family:'Playfair Display',serif;font-size:26px;font-weight:700;color:var(--white);margin-bottom:6px}
+  .setup-sub{font-size:13px;color:var(--gray);line-height:1.6;margin-bottom:24px}
+  .slabel{font-size:11px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--gray);margin-bottom:5px;display:block}
+  .sinput{width:100%;background:var(--surface2);border:1px solid var(--border2);color:var(--cream);padding:0 14px;height:42px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;outline:none;margin-bottom:14px;transition:border-color .15s}
+  .sinput:focus{border-color:var(--gold-dim)}
+  .sinput::placeholder{color:var(--gray2)}
+  .sbtn{width:100%;background:var(--gold);color:var(--black);border:none;height:42px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;transition:opacity .15s;margin-top:4px}
+  .sbtn:hover{opacity:.85}
+  .sbtn:disabled{opacity:.4;cursor:not-allowed}
+  .serr{font-size:12px;color:var(--red);margin-top:10px;padding:10px 14px;background:var(--red-bg);border:1px solid rgba(201,74,74,.3);border-radius:6px;display:none;line-height:1.6;word-break:break-all}
+  .snote{margin-top:14px;font-size:11px;color:var(--gray2);line-height:1.6}
+  .snote a{color:var(--gold);text-decoration:none}
+  .snote a:hover{text-decoration:underline}
+  hr.sdiv{border:none;border-top:1px solid var(--border);margin:20px 0}
+
+  /* LOADING */
+  .loading-screen{display:none;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;gap:16px}
+  .spinner{width:32px;height:32px;border:2px solid var(--border2);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .ltxt{font-size:13px;color:var(--gray)}
+
+  /* APP */
+  .app{display:none}
+  .header{background:var(--surface);border-bottom:1px solid var(--border);padding:16px 32px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  .hleft{display:flex;align-items:center;gap:14px}
+  .logomark{width:34px;height:34px;background:var(--gold-bg);border:1px solid var(--gold-dim);border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:15px;font-weight:900;color:var(--gold)}
+  .htitle{font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--white)}
+  .hsub{font-size:11px;color:var(--gray);margin-top:1px}
+  .sdot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px;background:var(--gray2);transition:background .3s}
+  .sdot.syncing{background:var(--amber)}
+  .sdot.synced{background:var(--green)}
+  .sdot.error{background:var(--red)}
+  .slbl{font-size:11px;color:var(--gray)}
+  .hact{display:flex;gap:10px;align-items:center}
+  .btnp{background:var(--gold);color:var(--black);border:none;padding:0 18px;height:36px;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:opacity .15s}
+  .btnp:hover{opacity:.85}
+  .btng{background:transparent;border:1px solid var(--border2);color:var(--gray);padding:0 14px;height:36px;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;transition:all .15s}
+  .btng:hover{border-color:var(--gold-dim);color:var(--gold)}
+
+  .statsbar{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:1px;background:var(--border);border-bottom:1px solid var(--border)}
+  .stat{background:var(--surface);padding:12px 16px;text-align:center;cursor:pointer;transition:background .15s}
+  .stat:hover,.stat.active{background:var(--surface2)}
+  .snum{font-family:'Playfair Display',serif;font-size:24px;font-weight:700;line-height:1;margin-bottom:3px}
+  .slb{font-size:10px;font-weight:500;letter-spacing:.08em;text-transform:uppercase}
+  .sa .snum{color:var(--cream)}.sa .slb{color:var(--gray)}
+  .sn .snum,.sn .slb{color:var(--blue)}
+  .sc .snum,.sc .slb{color:var(--amber)}
+  .sp .snum,.sp .slb{color:var(--purple)}
+  .sk .snum,.sk .slb{color:var(--green)}
+
+  .toolbar{padding:12px 32px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .toolbar input,.toolbar select{background:var(--surface2);border:1px solid var(--border2);color:var(--cream);padding:0 12px;height:32px;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:12px;outline:none;transition:border-color .15s}
+  .toolbar input{flex:1;min-width:180px}
+  .toolbar input::placeholder{color:var(--gray2)}
+  .toolbar input:focus,.toolbar select:focus{border-color:var(--gold-dim)}
+  .toolbar select option{background:#1c1a17}
+
+  .tablewrap{padding:0 32px 40px;overflow-x:auto}
+  table{width:100%;border-collapse:collapse;margin-top:14px;min-width:780px}
+  thead tr{border-bottom:1px solid var(--border2)}
+  th{text-align:left;padding:8px 10px;font-size:10px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--gray)}
+  td{padding:11px 10px;border-bottom:1px solid var(--border);vertical-align:top}
+  tbody tr:hover td{background:var(--surface2)}
+  tbody tr:last-child td{border-bottom:none}
+  .lname{font-size:13px;font-weight:500;color:var(--white);margin-bottom:2px}
+  .lcontact{font-size:12px;color:var(--gray);line-height:1.5}
+  .spill{font-size:11px;color:var(--gray);border:1px solid var(--border2);border-radius:3px;padding:2px 7px;display:inline-block}
+  .ssel{background:var(--surface2);border:1px solid var(--border2);color:var(--cream2);padding:3px 6px;border-radius:4px;font-family:'DM Sans',sans-serif;font-size:11px;cursor:pointer;width:100%;outline:none}
+  .ssel:focus{border-color:var(--gold-dim)}
+  .ssel option{background:#1c1a17}
+  .anote{font-size:12px;color:var(--gray);line-height:1.5;max-width:200px}
+  .rowbtns{display:flex;gap:6px}
+  .bedit,.bdel{font-size:11px;padding:3px 9px;border-radius:4px;cursor:pointer;border:1px solid var(--border2);font-family:'DM Sans',sans-serif;background:transparent;transition:all .15s;color:var(--gray)}
+  .bedit:hover{border-color:var(--gold-dim);color:var(--gold)}
+  .bdel:hover{border-color:var(--red);color:var(--red);background:var(--red-bg)}
+  .empty{text-align:center;padding:60px 32px}
+  .eg{font-family:'Playfair Display',serif;font-size:48px;font-weight:900;color:var(--border2);margin-bottom:12px}
+  .et{font-size:15px;color:var(--gray);margin-bottom:4px}
+  .es{font-size:13px;color:var(--gray2)}
+
+  /* MODAL */
+  .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:100;align-items:center;justify-content:center;padding:20px}
+  .overlay.open{display:flex}
+  .modal{background:var(--surface);border:1px solid var(--border2);border-radius:12px;padding:28px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto}
+  .modal h2{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--white);margin-bottom:18px}
+  .field{margin-bottom:12px}
+  .field label{display:block;font-size:11px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--gray);margin-bottom:5px}
+  .field input,.field select,.field textarea{width:100%;background:var(--surface2);border:1px solid var(--border2);color:var(--cream);padding:0 12px;height:38px;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:13px;outline:none;transition:border-color .15s}
+  .field input::placeholder{color:var(--gray2)}
+  .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--gold-dim)}
+  .field select option{background:#1c1a17}
+  .field textarea{height:78px;padding-top:10px;resize:vertical}
+  .frow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .mfoot{display:flex;gap:10px;justify-content:flex-end;margin-top:18px;padding-top:14px;border-top:1px solid var(--border)}
+  .bcancel{background:transparent;border:1px solid var(--border2);color:var(--gray);padding:0 16px;height:36px;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer}
+  .bcancel:hover{border-color:var(--gray);color:var(--cream)}
+  .ferr{font-size:12px;color:var(--red);margin-top:4px;display:none}
+
+  .saving-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:200;align-items:center;justify-content:center}
+  .saving-overlay.show{display:flex}
+  .saving-box{background:var(--surface);border:1px solid var(--border2);border-radius:10px;padding:20px 28px;display:flex;align-items:center;gap:12px;font-size:13px;color:var(--cream2)}
+</style>
+</head>
+<body>
+
+<!-- SETUP -->
+<div class="setup-screen" id="setup-screen">
+  <div class="setup-card">
+    <div class="setup-logo">C</div>
+    <div class="setup-title">Cadillac Lead CRM</div>
+    <div class="setup-sub">Powered by Airtable — works from any computer, syncs instantly. Enter your Airtable credentials below.</div>
+
+    <label class="slabel">Airtable Base ID</label>
+    <input class="sinput" type="text" id="base-input" placeholder="appXXXXXXXXXXXXXX">
+
+    <label class="slabel">Personal Access Token</label>
+    <input class="sinput" type="password" id="token-input" placeholder="patXXXXXXXXXXXXXX.XXXX...">
+
+    <div class="serr" id="setup-err"></div>
+    <button class="sbtn" id="conn-btn" onclick="doConnect()">Connect &amp; Load My Leads</button>
+
+    <div class="snote">
+      Need help? Follow the setup guide in Claude. Free Airtable account required.<br>
+      Your credentials are saved only in this browser — never sent anywhere except Airtable directly.
+    </div>
+  </div>
+</div>
+
+<!-- LOADING -->
+<div class="loading-screen" id="loading-screen">
+  <div class="spinner"></div>
+  <div class="ltxt" id="ltxt">Connecting to Airtable...</div>
+</div>
+
+<!-- SAVING INDICATOR -->
+<div class="saving-overlay" id="saving-overlay">
+  <div class="saving-box"><div class="spinner" style="width:18px;height:18px;border-width:2px"></div> Saving...</div>
+</div>
+
+<!-- APP -->
+<div class="app" id="app">
+  <div class="header">
+    <div class="hleft">
+      <div class="logomark">C</div>
+      <div><div class="htitle">Cadillac Lead CRM</div><div class="hsub">Synced with Airtable</div></div>
+    </div>
+    <div class="hact">
+      <span><span class="sdot" id="sdot"></span><span class="slbl" id="slbl"></span></span>
+      <button class="btng" onclick="exportCSV()">Export CSV</button>
+      <button class="btng" onclick="doSignOut()">Sign out</button>
+      <button class="btnp" onclick="openModal()">+ Add Lead</button>
+    </div>
+  </div>
+
+  <div class="statsbar">
+    <div class="stat sa active" id="st-all" onclick="fStage('')"><div class="snum" id="sn-all">0</div><div class="slb">Total</div></div>
+    <div class="stat sn" id="st-new" onclick="fStage('new')"><div class="snum" id="sn-new">0</div><div class="slb">New</div></div>
+    <div class="stat sc" id="st-contacted" onclick="fStage('contacted')"><div class="snum" id="sn-contacted">0</div><div class="slb">Contacted</div></div>
+    <div class="stat sp" id="st-appt" onclick="fStage('appt')"><div class="snum" id="sn-appt">0</div><div class="slb">Appt Set</div></div>
+    <div class="stat sk" id="st-closed" onclick="fStage('closed')"><div class="snum" id="sn-closed">0</div><div class="slb">Closed</div></div>
+  </div>
+
+  <div class="toolbar">
+    <input type="text" id="search" placeholder="Search name, phone, vehicle, notes...">
+    <select id="f-src" onchange="render()">
+      <option value="">All sources</option>
+      <option>TikTok</option><option>Instagram Reels</option><option>Facebook</option>
+      <option>DM</option><option>Referral</option><option>Walk-in</option><option>Other</option>
+    </select>
+    <select id="f-veh" onchange="render()">
+      <option value="">All vehicles</option>
+      <option>Escalade</option><option>Escalade ESV</option><option>Lyriq</option>
+      <option>CT5</option><option>CT5-V</option><option>CT5-V Blackwing</option>
+      <option>CT4</option><option>CT4-V</option><option>XT5</option><option>XT6</option>
+      <option>Optiq</option><option>Vistiq</option><option>Undecided</option>
+    </select>
+  </div>
+
+  <div class="tablewrap">
+    <table>
+      <thead><tr>
+        <th style="width:20%">Lead</th><th style="width:13%">Vehicle</th>
+        <th style="width:11%">Source</th><th style="width:14%">Status</th>
+        <th style="width:24%">Next action / notes</th>
+        <th style="width:9%">Added</th><th style="width:9%"></th>
+      </tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+    <div id="empty" class="empty" style="display:none">
+      <div class="eg">C</div>
+      <div class="et">No leads yet</div>
+      <div class="es">Hit "+ Add Lead" to start your pipeline.</div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="overlay" id="overlay" onclick="bgClick(event)">
+  <div class="modal">
+    <h2 id="mh">Add New Lead</h2>
+    <div class="field"><label>Full name *</label><input type="text" id="f-name" placeholder="e.g. Marcus Johnson"><div class="ferr" id="ferr">Please enter a name.</div></div>
+    <div class="frow">
+      <div class="field"><label>Phone</label><input type="text" id="f-phone" placeholder="(904) 555-0100"></div>
+      <div class="field"><label>Email</label><input type="text" id="f-email" placeholder="email@gmail.com"></div>
+    </div>
+    <div class="frow">
+      <div class="field"><label>Vehicle</label>
+        <select id="f-vehicle"><option value="">Select...</option>
+          <option>Escalade</option><option>Escalade ESV</option><option>Lyriq</option>
+          <option>CT5</option><option>CT5-V</option><option>CT5-V Blackwing</option>
+          <option>CT4</option><option>CT4-V</option><option>XT5</option><option>XT6</option>
+          <option>Optiq</option><option>Vistiq</option><option>Undecided</option>
+        </select>
+      </div>
+      <div class="field"><label>Source</label>
+        <select id="f-source"><option value="">Select...</option>
+          <option>TikTok</option><option>Instagram Reels</option><option>Facebook</option>
+          <option>DM</option><option>Referral</option><option>Walk-in</option><option>Other</option>
+        </select>
+      </div>
+    </div>
+    <div class="field"><label>Status</label>
+      <select id="f-status">
+        <option value="new">New lead</option><option value="contacted">Contacted</option>
+        <option value="appt">Appointment set</option><option value="closed">Deal closed</option>
+        <option value="dead">Dead / lost</option>
+      </select>
+    </div>
+    <div class="field"><label>Next action / notes</label>
+      <textarea id="f-action" placeholder="e.g. Call Thursday — interested in black Escalade Sport, ~$900/mo budget."></textarea>
+    </div>
+    <div class="mfoot">
+      <button class="bcancel" onclick="closeModal()">Cancel</button>
+      <button class="btnp" onclick="saveLead()">Save Lead</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const LS_BASE  = 'cadcrm-base';
+const LS_TOKEN = 'cadcrm-token';
+const LS_CACHE = 'cadcrm-cache';
+const AT_URL   = 'https://api.airtable.com/v0';
+const TABLE    = 'Leads';
+
+let leads=[], editId=null, stageF='', apiBase='', apiToken='';
+
+const SM={new:'New lead',contacted:'Contacted',appt:'Appt set',closed:'Deal closed',dead:'Dead / lost'};
+
+// ── SCREENS ──
+function show(s){
+  document.getElementById('setup-screen').style.display   = s==='setup'   ? 'flex'  : 'none';
+  document.getElementById('loading-screen').style.display = s==='loading' ? 'flex'  : 'none';
+  document.getElementById('app').style.display            = s==='app'     ? 'block' : 'none';
+}
+function setLtxt(t){document.getElementById('ltxt').textContent=t}
+function setSynced(cls,lbl){
+  document.getElementById('sdot').className='sdot '+cls;
+  document.getElementById('slbl').textContent=lbl;
+}
+function showSaving(on){document.getElementById('saving-overlay').classList.toggle('show',on)}
+
+// ── ERROR ──
+function showErr(msg){
+  const el=document.getElementById('setup-err');
+  el.textContent=msg; el.style.display='block';
+  show('setup');
+  const btn=document.getElementById('conn-btn');
+  btn.disabled=false; btn.textContent='Connect & Load My Leads';
+}
+
+// ── AIRTABLE FETCH ──
+async function atFetch(path, opts={}){
+  const url=`${AT_URL}/${apiBase}/${TABLE}${path}`;
+  const res=await fetch(url,{
+    method:opts.method||'GET',
+    headers:{'Authorization':'Bearer '+apiToken,'Content-Type':'application/json',...(opts.headers||{})},
+    body:opts.body||undefined
+  });
+  const text=await res.text();
+  let json;
+  try{json=JSON.parse(text)}catch(e){throw new Error(`Non-JSON (${res.status}): ${text.slice(0,300)}`)}
+  if(!res.ok) throw new Error(`Airtable ${res.status}: ${json.error?.message||JSON.stringify(json.error||json)}`);
+  return json;
+}
+
+// ── CONNECT ──
+async function doConnect(){
+  const base=document.getElementById('base-input').value.trim();
+  const token=document.getElementById('token-input').value.trim();
+  document.getElementById('setup-err').style.display='none';
+  if(!base||!token){showErr('Please enter both your Base ID and Personal Access Token.');return}
+  if(!base.startsWith('app')){showErr('Base ID should start with "app" — check and try again.');return}
+  if(!token.startsWith('pat')){showErr('Personal Access Token should start with "pat" — check and try again.');return}
+  document.getElementById('conn-btn').disabled=true;
+  document.getElementById('conn-btn').textContent='Connecting...';
+  apiBase=base; apiToken=token;
+  localStorage.setItem(LS_BASE,base); localStorage.setItem(LS_TOKEN,token);
+  show('loading'); setLtxt('Connecting to Airtable...');
+  await loadLeads(true);
+}
+
+// ── LOAD ──
+async function loadLeads(isInit){
+  setLtxt('Loading your leads...');
+  try{
+    let allRecords=[], offset=null;
+    do {
+      const qs = offset ? `?offset=${offset}` : '';
+      const data = await atFetch(qs);
+      allRecords = allRecords.concat(data.records||[]);
+      offset = data.offset||null;
+    } while(offset);
+
+    leads = allRecords.map(r=>({
+      _id:   r.id,
+      id:    r.fields.crmId || r.id,
+      name:  r.fields.Name     ||'',
+      phone: r.fields.Phone    ||'',
+      email: r.fields.Email    ||'',
+      vehicle:r.fields.Vehicle ||'',
+      source: r.fields.Source  ||'',
+      status: r.fields.Status  ||'new',
+      action: r.fields.Action  ||'',
+      date:   r.fields.Date    ||''
+    }));
+    localStorage.setItem(LS_CACHE,JSON.stringify(leads));
+    show('app'); setSynced('synced','Synced'); setTimeout(()=>setSynced('',''),3000); render();
+  }catch(e){
+    if(isInit){
+      const cache=localStorage.getItem(LS_CACHE);
+      if(cache){leads=JSON.parse(cache);show('app');setSynced('error','Offline — cached');render()}
+      else showErr('Could not connect: '+e.message);
+    } else {
+      setSynced('error','Sync failed'); console.error(e);
+    }
+  }
+}
+
+// ── CREATE ──
+async function createRecord(lead){
+  showSaving(true);
+  try{
+    const data=await atFetch('',{method:'POST',body:JSON.stringify({fields:toFields(lead)})});
+    lead._id=data.id;
+    localStorage.setItem(LS_CACHE,JSON.stringify(leads));
+    setSynced('synced','Saved'); setTimeout(()=>setSynced('',''),2500);
+  }catch(e){setSynced('error','Save failed — check connection');console.error(e)}
+  finally{showSaving(false)}
+}
+
+// ── UPDATE ──
+async function updateRecord(lead){
+  if(!lead._id) return;
+  showSaving(true);
+  try{
+    await atFetch('/'+lead._id,{method:'PATCH',body:JSON.stringify({fields:toFields(lead)})});
+    localStorage.setItem(LS_CACHE,JSON.stringify(leads));
+    setSynced('synced','Saved'); setTimeout(()=>setSynced('',''),2500);
+  }catch(e){setSynced('error','Save failed');console.error(e)}
+  finally{showSaving(false)}
+}
+
+// ── DELETE ──
+async function deleteRecord(lead){
+  if(!lead._id) return;
+  showSaving(true);
+  try{
+    await atFetch('/'+lead._id,{method:'DELETE'});
+    localStorage.setItem(LS_CACHE,JSON.stringify(leads));
+    setSynced('synced','Deleted'); setTimeout(()=>setSynced('',''),2500);
+  }catch(e){setSynced('error','Delete failed');console.error(e)}
+  finally{showSaving(false)}
+}
+
+function toFields(l){
+  return {Name:l.name,Phone:l.phone,Email:l.email,Vehicle:l.vehicle,Source:l.source,Status:l.status,Action:l.action,Date:l.date,crmId:l.id};
+}
+
+// ── SIGN OUT ──
+function doSignOut(){
+  if(!confirm('Sign out? Your leads stay in Airtable.'))return;
+  [LS_BASE,LS_TOKEN,LS_CACHE].forEach(k=>localStorage.removeItem(k));
+  apiBase='';apiToken='';leads=[];
+  document.getElementById('base-input').value='';
+  document.getElementById('token-input').value='';
+  show('setup');
+}
+
+// ── MODAL ──
+function openModal(id){
+  editId=id||null;
+  document.getElementById('mh').textContent=id?'Edit Lead':'Add New Lead';
+  document.getElementById('ferr').style.display='none';
+  const l=id?leads.find(x=>x.id===id):null;
+  document.getElementById('f-name').value    =l?.name   ||'';
+  document.getElementById('f-phone').value   =l?.phone  ||'';
+  document.getElementById('f-email').value   =l?.email  ||'';
+  document.getElementById('f-vehicle').value =l?.vehicle||'';
+  document.getElementById('f-source').value  =l?.source ||'';
+  document.getElementById('f-status').value  =l?.status ||'new';
+  document.getElementById('f-action').value  =l?.action ||'';
+  document.getElementById('overlay').classList.add('open');
+  setTimeout(()=>document.getElementById('f-name').focus(),80);
+}
+function closeModal(){document.getElementById('overlay').classList.remove('open');editId=null}
+function bgClick(e){if(e.target===document.getElementById('overlay'))closeModal()}
+
+async function saveLead(){
+  const name=document.getElementById('f-name').value.trim();
+  if(!name){document.getElementById('ferr').style.display='block';document.getElementById('f-name').focus();return}
+  document.getElementById('ferr').style.display='none';
+  const ds=new Date().toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  const lead={
+    id:editId||Date.now().toString(),
+    _id:editId?(leads.find(x=>x.id===editId)||{})._id||'':'',
+    name,
+    phone:document.getElementById('f-phone').value.trim(),
+    email:document.getElementById('f-email').value.trim(),
+    vehicle:document.getElementById('f-vehicle').value,
+    source:document.getElementById('f-source').value,
+    status:document.getElementById('f-status').value,
+    action:document.getElementById('f-action').value.trim(),
+    date:editId?(leads.find(x=>x.id===editId)||{}).date||ds:ds
+  };
+  closeModal();
+  if(editId){
+    const i=leads.findIndex(x=>x.id===editId);
+    if(i>-1)leads[i]=lead;
+    render(); await updateRecord(lead);
+  } else {
+    leads.unshift(lead); render(); await createRecord(lead);
+  }
+}
+
+async function deleteLead(id){
+  if(!confirm('Delete this lead?'))return;
+  const lead=leads.find(x=>x.id===id);
+  leads=leads.filter(x=>x.id!==id);
+  render(); if(lead) await deleteRecord(lead);
+}
+
+async function updStatus(id,v){
+  const l=leads.find(x=>x.id===id);
+  if(!l)return; l.status=v; render(); await updateRecord(l);
+}
+
+// ── FILTER + RENDER ──
+function fStage(s){
+  stageF=stageF===s?'':s;
+  document.querySelectorAll('.stat').forEach(e=>e.classList.remove('active'));
+  document.getElementById('st-'+(stageF||'all')).classList.add('active');
+  render();
+}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function render(){
+  const q=(document.getElementById('search')||{}).value?.toLowerCase()||'';
+  const fs=(document.getElementById('f-src')||{}).value||'';
+  const fv=(document.getElementById('f-veh')||{}).value||'';
+  document.getElementById('sn-all').textContent=leads.length;
+  ['new','contacted','appt','closed'].forEach(s=>document.getElementById('sn-'+s).textContent=leads.filter(l=>l.status===s).length);
+  const fil=leads.filter(l=>{
+    const mq=!q||[l.name,l.phone,l.email,l.vehicle,l.action,l.source].join(' ').toLowerCase().includes(q);
+    return mq&&(!stageF||l.status===stageF)&&(!fs||l.source===fs)&&(!fv||l.vehicle===fv);
+  });
+  document.getElementById('empty').style.display=fil.length?'none':'block';
+  document.getElementById('tbody').innerHTML=fil.map(l=>{
+    const opts=Object.entries(SM).map(([v,lb])=>`<option value="${v}"${l.status===v?' selected':''}>${lb}</option>`).join('');
+    return `<tr>
+      <td><div class="lname">${esc(l.name)}</div><div class="lcontact">${[l.phone,l.email].filter(Boolean).map(esc).join('<br>')||'<span style="color:#4a4540">No contact info</span>'}</div></td>
+      <td style="font-size:13px;color:var(--cream2)">${esc(l.vehicle)||'<span style="color:#4a4540">—</span>'}</td>
+      <td>${l.source?`<span class="spill">${esc(l.source)}</span>`:'<span style="color:#4a4540">—</span>'}</td>
+      <td><select class="ssel" onchange="updStatus('${l.id}',this.value)">${opts}</select></td>
+      <td><div class="anote">${l.action?esc(l.action):'<span style="color:#4a4540">—</span>'}</div></td>
+      <td style="font-size:11px;color:var(--gray)">${l.date||''}</td>
+      <td><div class="rowbtns"><button class="bedit" onclick="openModal('${l.id}')">Edit</button><button class="bdel" onclick="deleteLead('${l.id}')">Del</button></div></td>
+    </tr>`;
+  }).join('');
+}
+
+function exportCSV(){
+  if(!leads.length){alert('No leads to export.');return}
+  const h=['Name','Phone','Email','Vehicle','Source','Status','Next Action','Date'];
+  const rows=leads.map(l=>[l.name,l.phone,l.email,l.vehicle,l.source,SM[l.status]||l.status,l.action,l.date].map(v=>`"${String(v||'').replace(/"/g,'""')}"`));
+  Object.assign(document.createElement('a'),{href:URL.createObjectURL(new Blob([[h,...rows].map(r=>r.join(',')).join('\n')],{type:'text/csv'})),download:'Cadillac_Leads_'+new Date().toISOString().slice(0,10)+'.csv'}).click();
+}
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape')closeModal();
+  if((e.metaKey||e.ctrlKey)&&e.key==='Enter'&&document.getElementById('overlay').classList.contains('open'))saveLead();
+});
+document.addEventListener('DOMContentLoaded',()=>document.getElementById('search')?.addEventListener('input',render));
+
+// INIT
+const sb=localStorage.getItem(LS_BASE),st=localStorage.getItem(LS_TOKEN);
+if(sb&&st){apiBase=sb;apiToken=st;show('loading');loadLeads(true)}
+else show('setup');
+</script>
+</body>
+</html>
